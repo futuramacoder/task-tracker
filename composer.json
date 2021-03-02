@@ -1,0 +1,11 @@
+{
+    "name": "root/www",
+    "require": {
+        "symfony/http-foundation": "^5.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app"
+        }
+    }
+}

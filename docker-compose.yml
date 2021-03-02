@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  task-tracker-db:
+    container_name: task-tracker-db
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - ${DB_PORT}:5432
+  task-tracker-db-pgadmin:
+    init: true
+    image: dpage/pgadmin4
+    container_name: task-tracker-db-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - ${PGADMIN_PORT}:80
+    depends_on:
+      - task-tracker-db
+  task-tracker-php-fpm:
+    container_name: task-tracker-php-fpm
+    build:
+      args:
+        user: ${USER}
+        uid: ${UID}
+      context: ./docker/php-fpm
+    depends_on:
+      - task-tracker-db
+    volumes:
+      - ./:/var/www
+
+  task-tracker-nginx:
+    container_name: task-tracker-nginx
+    build:
+      context: ./docker/nginx
+    volumes:
+      - ./:/var/www
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/sites/:/etc/nginx/sites-available
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d
+    depends_on:
+      - task-tracker-php-fpm
+    ports:
+      - ${NGINX_PORT}:80
